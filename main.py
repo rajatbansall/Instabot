@@ -6,26 +6,43 @@ access_token = response['access_token']
 result = False
 Base = 'https://api.instagram.com/v1/'
 
+def comment(uid):
+    media_id = get_media_id(uid)
+    comment = raw_input("What comment you want to post?")
+    payload = {'access_token': access_token, 'Text': comment}
+    url = Base + 'media/%s/comments' % (media_id)
+    print url
+    r = requests.post(url, payload).json()
+    print r
+    if r['meta']['code'] == 200:
+        print "Comment Successfull."
+    else:
+        print 'Couldn\'t Comment please try again!'
+
+
 def get_media_id(uid):
     media_choice = raw_input("Please input media ID:")
-    media = int(media_choice) + 1
-    request_url = ('%s/users/%s/media/%s/?access_token=%s') % (Base,uid,media,access_token)
-    info = requests.get(request_url)
+    media = str(int(media_choice) + 1)
+    request_url = (Base +'users/%s/media/recent/?access_token=%s') % (uid,access_token)
+    info = requests.get(request_url).json()
     if info['meta']['code'] == 200:
-        return info['data'][media]['id']
+        return info['data'][0]['id']
     else:
         print 'Couldn\'t get media id'
 
 #Liking a post
 def like(uid):
     media_id = get_media_id(uid)
-    payload = ("Access_Token": access_token)
+    payload = {'access_token': access_token}
     url = Base + 'media/%s/likes' % (media_id)
-    r = requests.post(url,payload).json()
+    print url
+    r = requests.post(url, payload).json()
+    print r
     if r['meta']['code'] == 200:
-        print 'Liked Successfully'
+        print "Post Liked Successfully."
     else :
-        print 'Couldn\'t like, Please try again!'
+
+        print 'Couldn\'t like please try again!'
 
 #Downloading User media
 def download(id,url):
@@ -138,9 +155,9 @@ def self():
 
 def start_bot():
     success = 0
-    print "Please enter your choice from the given tasks: \n 1. Get your account's information \n 2. Get your recent post's information\n 3. Get any other user's info \n 4. Get any of your post's information \n 5. Get a user's post and download \n 6. Like a user's post\n 7. Remove negative comments\n 8. Exit"
+    print "Please enter your choice from the given tasks: \n 1. Get your account's information \n 2. Get your recent post's information\n 3. Get any other user's info \n 4. Get any of your post's information \n 5. Get a user's post and download \n 6. Like a user's post\n 7. Commenmt on a post\n 8. Exit"
     choice = raw_input()
-    if int(choice) > 0 and int(choice) < 7:
+    if int(choice) > 0 and int(choice) < 10:
         # Tasks
         if choice == '1':
             self()
@@ -177,6 +194,15 @@ def start_bot():
                 return False
             return False
         elif choice == '7':
+            search = u_search()
+            if search == 0:
+                return False
+            else:
+                uid = search['id']
+                comment(uid)
+                return False
+            return False
+        elif choice == '8':
             return True
 
     else:
