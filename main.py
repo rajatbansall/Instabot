@@ -9,9 +9,8 @@ Base = 'https://api.instagram.com/v1/'
 def comment(uid):
     media_id = get_media_id(uid)
     comment = raw_input("What comment you want to post?")
-    payload = {'access_token': access_token, 'Text': comment}
-    url = Base + 'media/%s/comments' % (media_id)
-    print url
+    payload = {"access_token": access_token, "text": comment}
+    url = (Base + 'media/%s/comments') % (media_id)
     r = requests.post(url, payload).json()
     print r
     if r['meta']['code'] == 200:
@@ -22,11 +21,11 @@ def comment(uid):
 
 def get_media_id(uid):
     media_choice = raw_input("Please input media ID:")
-    media = str(int(media_choice) + 1)
+    media = int(media_choice) - 1
     request_url = (Base +'users/%s/media/recent/?access_token=%s') % (uid,access_token)
     info = requests.get(request_url).json()
     if info['meta']['code'] == 200:
-        return info['data'][0]['id']
+        return info['data'][media]['id']
     else:
         print 'Couldn\'t get media id'
 
@@ -35,13 +34,11 @@ def like(uid):
     media_id = get_media_id(uid)
     payload = {'access_token': access_token}
     url = Base + 'media/%s/likes' % (media_id)
-    print url
     r = requests.post(url, payload).json()
     print r
     if r['meta']['code'] == 200:
         print "Post Liked Successfully."
     else :
-
         print 'Couldn\'t like please try again!'
 
 #Downloading User media
