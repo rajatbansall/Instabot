@@ -1,11 +1,42 @@
 import requests
 import urllib
+from textblob import TextBlob
+from textblob.sentiments import NaiveBayesAnalyzer
+
+#Fetching Access Token
 response = requests.get('https://api.jsonbin.io/b/59d0f30408be13271f7df29c').json()
 access_token = response['access_token']
 
 result = False
 Base = 'https://api.instagram.com/v1/'
 
+#deleting a comment
+def del_comment(uid):
+    count = 0
+    media_id = get_media_id(uid)
+    request = (Base + "media/%s/comments/?access_token=%s") % (media_id,access_token)
+    info = requests.get(request).json()
+    if info['meta']['code'] == 200:
+        if len(info['data']) > 0:
+            for comment in info['data']:
+                text = comment['text']
+                blob = TextBlob(text, analyzer=NaiveBayesAnalyzer())
+                if blob.sentiment.p_neg > blob.sentiment.p_pos:
+                    comment_id = comment['id']
+                    delete_url = (Base + 'media/%s/comments/%s/?access_token=%s') % (media_id, comment_id, access_token)
+                    print 'DELETE request url : %s' % (delete_url)
+
+                    delete_info = requests.delete(delete_url).json()
+
+                    if delete_info['meta']['code'] == 200:
+                        count = count + 1
+                print 'Deleted %d Comments' % (count)
+        else :
+            print 'There are no comments!'
+    else:
+        print 'There is some Error Try Again!'
+
+#comment on a post
 def comment(uid):
     media_id = get_media_id(uid)
     comment = raw_input("What comment you want to post?")
@@ -18,7 +49,7 @@ def comment(uid):
     else:
         print 'Couldn\'t Comment please try again!'
 
-
+#Fetching Id of a media
 def get_media_id(uid):
     media_choice = raw_input("Please input media ID:")
     media = int(media_choice) - 1
@@ -134,6 +165,7 @@ def r_post():
         print "Wrong Information retrieved"
 
 
+#Fetching info of your own profile
 def self():
     request_url = (Base + 'users/self/?access_token=%s') % (access_token)
     user_info = requests.get(request_url).json()
@@ -149,10 +181,10 @@ def self():
         #print 'Status code other than 200 received!'
         print "Wrong Information retrieved"
 
-
+#Start of the Bot
 def start_bot():
     success = 0
-    print "Please enter your choice from the given tasks: \n 1. Get your account's information \n 2. Get your recent post's information\n 3. Get any other user's info \n 4. Get any of your post's information \n 5. Get a user's post and download \n 6. Like a user's post\n 7. Commenmt on a post\n 8. Exit"
+    print "Please enter your choice from the given tasks: \n 1. Get your account's information \n 2. Get your recent post's information\n 3. Get any other user's info \n 4. Get any of your post's information \n 5. Get a user's post and download \n 6. Like a user's post\n 7. Comment on a post\n 8. Delete a Comment\n 9. Exit"
     choice = raw_input()
     if int(choice) > 0 and int(choice) < 10:
         # Tasks
@@ -200,12 +232,22 @@ def start_bot():
                 return False
             return False
         elif choice == '8':
+            search = u_search()
+            if search == 0:
+                return False
+            else:
+                uid = search['id']
+                del_comment(uid)
+                return False
+            return False
+        elif choice == '9':
             return True
 
     else:
         print "You have entered a wrong choice please try again !"
         return False
 
+#loop that runs bot untill it gets False
 while result == False :
     # Start Bot
     result = start_bot()
