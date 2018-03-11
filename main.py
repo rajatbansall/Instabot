@@ -10,6 +10,16 @@ access_token = response['access_token']
 result = False
 Base = 'https://api.instagram.com/v1/'
 
+#Fetching Comments
+def fetch_comment(uid):
+    count = 0
+    media_id = get_media_id(uid)
+    request = (Base + "media/%s/comments?access_token=%s") % (media_id,access_token)
+    info = requests.get(request).json()
+    print "These are the comments on your post: \n"
+    for comment in info['data'][count]['text']:
+        print info['data'][count]['text']
+        count = count + 1
 #deleting a comment
 def del_comment(uid):
     count = 0
@@ -184,9 +194,9 @@ def self():
 #Start of the Bot
 def start_bot():
     success = 0
-    print "Please enter your choice from the given tasks: \n 1. Get your account's information \n 2. Get your recent post's information\n 3. Get any other user's info \n 4. Get any of your post's information \n 5. Get a user's post and download \n 6. Like a user's post\n 7. Comment on a post\n 8. Delete a Comment\n 9. Exit"
+    print "Please enter your choice from the given tasks: \n 1. Get your account's information \n 2. Get your recent post's information\n 3. Get any other user's info \n 4. Get any of your post's information \n 5. Get a user's post and download \n 6. Like a user's post\n 7. Comment on a post\n 8. Fetch All The Comments\n 9. Delete Negative Comments\n 10. Exit"
     choice = raw_input()
-    if int(choice) > 0 and int(choice) < 10:
+    if int(choice) > 0 and int(choice) < 11:
         # Tasks
         if choice == '1':
             self()
@@ -237,10 +247,19 @@ def start_bot():
                 return False
             else:
                 uid = search['id']
-                del_comment(uid)
+                fetch_comment(uid)
                 return False
             return False
         elif choice == '9':
+            search = u_search()
+            if search == 0:
+                return False
+            else:
+                uid = search['id']
+                del_comment(uid)
+                return False
+            return False
+        elif choice == '10':
             return True
 
     else:
